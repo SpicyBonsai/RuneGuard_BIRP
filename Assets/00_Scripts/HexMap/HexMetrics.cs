@@ -2,23 +2,16 @@ using UnityEngine;
 
 public static class HexMetrics
 {
-
-    public const float outerRadius = 1f;
-
-    public const float innerRadius = outerRadius * 0.866025404f;
-
-    public const float solidFactor = 0.8f;
-
-    public const float blendFactor = 1f - solidFactor;
-
-    public const float elevationStep = 0.3f * outerRadius;
-
+    public const int chunkSizeX = 5, chunkSizeZ = 5;
     public const int terracesPerSlope = 2;
-
     public const int terraceSteps = terracesPerSlope * 2 + 1;
 
+    public const float outerRadius = 1f;
+    public const float innerRadius = outerRadius * 0.866025404f;
+    public const float solidFactor = 0.8f;
+    public const float blendFactor = 1f - solidFactor;
+    public const float elevationStep = 0.3f * outerRadius;
     public const float horizontalTerraceStepSize = 1f / terraceSteps;
-
     public const float verticalTerraceStepSize = 1f / (terracesPerSlope + 1);
 
     static Vector3[] corners = {
