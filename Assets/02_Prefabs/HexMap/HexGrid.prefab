@@ -229,11 +229,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f4ed1e930dccff4ca90b688ecd1b841, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 11
-  height: 11
-  defaultColor: {r: 1, g: 1, b: 1, a: 1}
+  chunkCountX: 4
+  chunkCountZ: 3
+  defaultColor: {r: 0.023985408, g: 0.103773594, b: 0.035067096, a: 1}
   cellPrefab: {fileID: 5498492402883135297, guid: 4c62d4f44bf6c0e41b6b1d3722f6fb8a, type: 3}
   cellLabelPrefab: {fileID: 11470134, guid: f68794ca03b6f4510b9a5bd6ee9ba2f4, type: 3}
+  chunkPrefab: {fileID: -4597719603890098600, guid: 652cab270e905d04daec77dbff7c1b83, type: 3}
 --- !u!1001 &2504706044238811032
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -1101,9 +1101,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   colors:
-  - {r: 1, g: 1, b: 0, a: 0}
-  - {r: 0, g: 1, b: 0, a: 0}
-  - {r: 0, g: 0, b: 0.49019608, a: 0}
+  - {r: 0.024029901, g: 0.18867922, b: 0.025992753, a: 0}
+  - {r: 0.029695602, g: 0.025453879, b: 0.03773582, a: 0}
+  - {r: 0.10866857, g: 0.114484966, b: 0.20754719, a: 0}
   - {r: 1, g: 1, b: 1, a: 0}
   hexGrid: {fileID: 0}
   activeElevation: 0
