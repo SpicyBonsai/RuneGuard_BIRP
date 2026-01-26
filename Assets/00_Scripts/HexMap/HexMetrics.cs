@@ -2,13 +2,14 @@ using UnityEngine;
 
 public static class HexMetrics
 {
+    public static Color[] colors;
     public const int chunkSizeX = 5, chunkSizeZ = 5;
     public const int terracesPerSlope = 2;
     public const int terraceSteps = terracesPerSlope * 2 + 1;
 
     public const float outerRadius = 1f;
     public const float innerRadius = outerRadius * 0.866025404f;
-    public const float solidFactor = 0.8f;
+    public const float solidFactor = 0.9f;
     public const float blendFactor = 1f - solidFactor;
     public const float elevationStep = 0.3f * outerRadius;
     public const float horizontalTerraceStepSize = 1f / terraceSteps;

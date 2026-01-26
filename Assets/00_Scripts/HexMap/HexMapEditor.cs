@@ -1,24 +1,19 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
+using System.IO;
 
 public class HexMapEditor : MonoBehaviour {
 
-	bool applyColor = true;
     bool applyElevation = true;
+    bool applyColor = true;
     int brushSize;
+    int activeTerrainTypeIndex;
 
-    public Color[] colors;
+    string mapName;
 
-	public HexGrid hexGrid;
-
-	private Color activeColor;
+    public HexGrid hexGrid;
 
     public int activeElevation;
-
-    void Awake () 
-	{
-		SelectColor(0);
-	}
 
 	void Update () 
 	{
@@ -67,7 +62,7 @@ public class HexMapEditor : MonoBehaviour {
         {
             if (applyColor)
             {
-                cell.Color = activeColor;
+                cell.TerrainTypeIndex = activeTerrainTypeIndex;
             }
             if (applyElevation)
             {
@@ -76,9 +71,9 @@ public class HexMapEditor : MonoBehaviour {
         }
     }
 
-    public void SelectColor (int index) {
-        applyColor = index >= 0;
-        activeColor = colors[index];
+    public void SetTerrainTypeIndex(int index)
+    {
+        activeTerrainTypeIndex = index;
     }
 
     public void SetElevation(float elevation)
@@ -104,5 +99,48 @@ public class HexMapEditor : MonoBehaviour {
     public void ShowUI(bool visible)
     {
         hexGrid.ShowUI(visible);
+    }
+
+    public void SetMapName(string name)
+    {
+        mapName = name;
+    }
+
+    public void Save()
+    {
+        if (mapName == null || mapName == "")
+        {
+            mapName = "unnamed";
+        }
+        string path = Path.Combine(Application.persistentDataPath, mapName + ".map");
+        using (BinaryWriter writer = new BinaryWriter(File.Open(path, FileMode.Create)))
+        {
+            writer.Write(1);
+            hexGrid.Save(writer);
+        }
+        Debug.Log("Saved " + mapName + " under " + path);
+    }
+
+    public void Load()
+    {
+        if (mapName == null || mapName == "")
+        {
+            mapName = "unnamed";
+        }
+        string path = Path.Combine(Application.persistentDataPath, mapName + ".map");
+        using (BinaryReader reader = new BinaryReader(File.OpenRead(path)))
+        {
+            int header = reader.ReadInt32();
+            if (header <= 1)
+            {
+                hexGrid.Load(reader, header);
+                HexMapCamera.ValidatePosition();
+            }
+            else
+            {
+                Debug.LogWarning("Unknown map format " + header);
+            }
+        }
+        Debug.Log("Loaded " + mapName + " from " + path);
     }
 }
