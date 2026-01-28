@@ -9,6 +9,35 @@ public class HexCell : MonoBehaviour
 
     public HexGridChunk chunk;
 
+    [SerializeField]
+    private HexCellType _type = HexCellType.path;
+
+    public HexCellType Type
+    {
+        get => _type;
+        set
+        {
+            if (Elevation == 0)
+            {
+                if (value is HexCellType.buildable or HexCellType.nonbuildable) value = HexCellType.path;
+            }
+            else
+            {
+                if(value is HexCellType.nexus or HexCellType.path or HexCellType.spawner) value = HexCellType.buildable;
+            }
+            _type = value;
+            HexPathManager.Instance.RefreshPathfindingWorld();
+        }
+    }
+    public enum HexCellType
+    {
+        path = 0,
+        spawner = 1,
+        nexus = 2,
+        buildable = 3,
+        nonbuildable = 4
+    }
+    
     void RefreshPosition()
     {
         Vector3 position = transform.localPosition;
@@ -18,6 +47,8 @@ public class HexCell : MonoBehaviour
         Vector3 uiPosition = uiRect.localPosition;
         uiPosition.z = elevation * -HexMetrics.elevationStep;
         uiRect.localPosition = uiPosition;
+
+        HexPathManager.Instance.RefreshPathfindingWorld();
     }
     public int Elevation
     {
@@ -29,11 +60,16 @@ public class HexCell : MonoBehaviour
         {
             if (elevation == value)
             {
+                Type = value == 0 ? HexCellType.path : HexCellType.buildable;
                 return;
             }
+
             elevation = value;
+            
             RefreshPosition();
             Refresh();
+            
+            Type = value == 0 ? HexCellType.path : HexCellType.buildable;
         }
     }
 
@@ -73,6 +109,11 @@ public class HexCell : MonoBehaviour
     public HexCell GetNeighbor(HexDirection direction)
     {
         return neighbors[(int)direction];
+    }
+    
+    public HexCell[] GetNeighbors()
+    {
+        return neighbors;
     }
 
     public void SetNeighbor(HexDirection direction, HexCell cell)

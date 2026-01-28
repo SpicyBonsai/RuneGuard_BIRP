@@ -1,10 +1,14 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.EventSystems;
 using System.IO;
+using TMPro;
 
 public class HexMapEditor : MonoBehaviour {
 
     bool applyElevation = true;
+    bool applyFlood = true;
     bool applyColor = true;
     int brushSize;
     int activeTerrainTypeIndex;
@@ -14,8 +18,22 @@ public class HexMapEditor : MonoBehaviour {
     public HexGrid hexGrid;
 
     public int activeElevation;
+    public HexCell.HexCellType activeType;
+    private List<HexCell> _floodedCells = new();
 
-	void Update () 
+    public TMP_Dropdown dropdown;
+    
+    private void Start()
+    {
+        dropdown.options = new();
+        dropdown.options.Clear();
+        foreach (var optionData in Enum.GetValues(typeof(HexCell.HexCellType)))
+        {
+            dropdown.options.Add(new TMP_Dropdown.OptionData(optionData.ToString()));
+        }
+    }
+
+    void Update () 
 	{
 		if (
 			Input.GetMouseButton(0) &&
@@ -26,12 +44,37 @@ public class HexMapEditor : MonoBehaviour {
 		}
 	}
 
-	void HandleInput () {
+	void HandleInput () 
+    {
 		Ray inputRay = Camera.main.ScreenPointToRay(Input.mousePosition);
 		RaycastHit hit;
         if (Physics.Raycast(inputRay, out hit) && hexGrid != null)
         {
-            EditCells(hexGrid.GetCell(hit.point));
+            if (applyFlood)
+            {
+                HexCell center = hexGrid.GetCell(hit.point);
+                int originalElevation = center.Elevation;
+                Color originalColor = center.Color;
+                EditCell(center);
+
+                if (applyElevation)
+                {
+                    _floodedCells.Clear();
+                    _floodedCells.Add(center);
+                    EditFloodElevation(center, originalElevation);
+                }
+                
+                if (applyColor)
+                {
+                    _floodedCells.Clear();
+                    _floodedCells.Add(center);
+                    EditFloodColor(center, originalColor);
+                }
+            }
+            else
+            {
+                EditCells(hexGrid.GetCell(hit.point));
+            }
         }
     }
 
@@ -56,19 +99,70 @@ public class HexMapEditor : MonoBehaviour {
         }
     }
 
+
+    void EditFloodElevation(HexCell center, int originalElevation)
+    {
+        foreach (var neighbour in center.GetNeighbors())
+        {
+            if(neighbour == null) continue;
+            if(_floodedCells.Contains(neighbour)) continue;
+
+            if (applyElevation && neighbour.Elevation != originalElevation) continue;
+            EditCell(neighbour);
+            _floodedCells.Add(neighbour);
+            EditFloodElevation(neighbour, originalElevation);
+        }
+    }
+
+    void EditFloodColor(HexCell center, Color originalColor)
+    {
+        foreach (var neighbour in center.GetNeighbors())
+        {
+            if(neighbour == null) continue;
+            if(_floodedCells.Contains(neighbour)) continue;
+
+            if (applyElevation && neighbour.Color != originalColor) continue;
+            EditCell(neighbour);
+            _floodedCells.Add(neighbour);
+            EditFloodColor(neighbour, originalColor);
+        }
+    }
+    
     void EditCell(HexCell cell)
     {
-        if (cell)
+        if (!cell) return;
+        
+        if (applyColor)
         {
-            if (applyColor)
+            cell.TerrainTypeIndex = activeTerrainTypeIndex;
+        }
+        if (applyElevation)
+        {
+            cell.Elevation = activeElevation;
+        }
+
+        if (cell.Type != activeType)
+        {
+            if(activeType == HexCell.HexCellType.nexus)
             {
-                cell.TerrainTypeIndex = activeTerrainTypeIndex;
+                hexGrid.AddNexus(cell);
             }
-            if (applyElevation)
+            if (cell.Type == HexCell.HexCellType.nexus)
             {
-                cell.Elevation = activeElevation;
+                hexGrid.DeleteNexus(cell);
+            }
+            
+            if (activeType == HexCell.HexCellType.spawner)
+            {
+                hexGrid.AddSpawner(cell);
+            }   
+            if (cell.Type == HexCell.HexCellType.spawner)
+            {
+                hexGrid.DeleteSpawner(cell);
             }
         }
+        cell.Type = activeType;
+        
     }
 
     public void SetTerrainTypeIndex(int index)
@@ -80,10 +174,20 @@ public class HexMapEditor : MonoBehaviour {
     {
         activeElevation = (int)elevation;
     }
+    
+    public void SetHexCellType(int value)
+    {
+        activeType = (HexCell.HexCellType)value;
+    }
 
     public void SetApplyElevation(bool toggle)
     {
         applyElevation = toggle;
+    }
+    
+    public void SetApplyFlood(bool toggle)
+    {
+        applyFlood = toggle;
     }
 
     public void SetApplyColor(bool toggle)
