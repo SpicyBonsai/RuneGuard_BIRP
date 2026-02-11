@@ -12,11 +12,15 @@ public class HexCell : MonoBehaviour
     [SerializeField]
     private HexCellType _type = HexCellType.path;
 
+    private GameObject _buildingInstance;
+    public bool HasBuilding => _buildingInstance;
+    
     public HexCellType Type
     {
         get => _type;
         set
         {
+            if(_type == value) return;
             if (Elevation == 0)
             {
                 if (value is HexCellType.buildable or HexCellType.nonbuildable) value = HexCellType.path;
@@ -77,23 +81,17 @@ public class HexCell : MonoBehaviour
 
     public int TerrainTypeIndex
     {
-        get
-        {
-            return terrainTypeIndex;
-        }
+        get => terrainTypeIndex;
         set
         {
-            if (terrainTypeIndex != value)
-            {
-                terrainTypeIndex = value;
-                Refresh();
-            }
+            if (terrainTypeIndex == value) return;
+            
+            terrainTypeIndex = value;
+            Refresh();
         }
     }
 
     int terrainTypeIndex;
-
-    int specialIndex;
 
     public Color Color
     {
@@ -152,18 +150,35 @@ public class HexCell : MonoBehaviour
         }
     }
 
+    public void AddBuilding(GameObject buildingPrefab)
+    {
+        _buildingInstance = Instantiate(buildingPrefab, transform.position, Quaternion.identity, gameObject.transform);
+    }
+
+    public void DeleteBuilding()
+    {
+        if(!HasBuilding) return;
+        Destroy(_buildingInstance.gameObject);
+    }
+    
     public void Save(BinaryWriter writer)
     {
         writer.Write((byte)terrainTypeIndex);
         writer.Write((byte)elevation);
-        writer.Write((byte)specialIndex);
+        writer.Write((byte)_type);
     }
 
     public void Load(BinaryReader reader)
     {
         terrainTypeIndex = reader.ReadByte();
         elevation = reader.ReadByte();
-        specialIndex = reader.ReadByte();
+        _type = (HexCellType)reader.ReadByte();
+        
         RefreshPosition();
+    }
+
+    public void AddTower(TowerDescriptor selectedTowerDescriptor)
+    {
+        _buildingInstance = Instantiate(selectedTowerDescriptor.prefab, transform.position, Quaternion.identity, gameObject.transform);
     }
 }

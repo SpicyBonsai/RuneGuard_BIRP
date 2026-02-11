@@ -12,8 +12,18 @@ public class HexMapEditor : MonoBehaviour {
     bool applyColor = true;
     int brushSize;
     int activeTerrainTypeIndex;
-
-    string mapName;
+    
+    string MapName
+    {
+        get
+        {
+            return mapNameInputField.text;
+        }
+        set
+        {
+            mapNameInputField.text = value;
+        }
+    }
 
     public HexGrid hexGrid;
 
@@ -22,6 +32,7 @@ public class HexMapEditor : MonoBehaviour {
     private List<HexCell> _floodedCells = new();
 
     public TMP_Dropdown dropdown;
+    public TMP_InputField mapNameInputField;
     
     private void Start()
     {
@@ -33,12 +44,9 @@ public class HexMapEditor : MonoBehaviour {
         }
     }
 
-    void Update () 
+    void FixedUpdate () 
 	{
-		if (
-			Input.GetMouseButton(0) &&
-			!EventSystem.current.IsPointerOverGameObject()
-		) 
+		if (Input.GetMouseButton(0) && !EventSystem.current.IsPointerOverGameObject()) 
 		{
 			HandleInput();
 		}
@@ -47,34 +55,33 @@ public class HexMapEditor : MonoBehaviour {
 	void HandleInput () 
     {
 		Ray inputRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-		RaycastHit hit;
-        if (Physics.Raycast(inputRay, out hit) && hexGrid != null)
-        {
-            if (applyFlood)
-            {
-                HexCell center = hexGrid.GetCell(hit.point);
-                int originalElevation = center.Elevation;
-                Color originalColor = center.Color;
-                EditCell(center);
 
-                if (applyElevation)
-                {
-                    _floodedCells.Clear();
-                    _floodedCells.Add(center);
-                    EditFloodElevation(center, originalElevation);
-                }
-                
-                if (applyColor)
-                {
-                    _floodedCells.Clear();
-                    _floodedCells.Add(center);
-                    EditFloodColor(center, originalColor);
-                }
-            }
-            else
+        if (!Physics.Raycast(inputRay, out RaycastHit hit) || hexGrid == null) return;
+        
+        if (applyFlood)
+        {
+            HexCell center = hexGrid.GetCell(hit.point);
+            int originalElevation = center.Elevation;
+            Color originalColor = center.Color;
+            EditCell(center);
+
+            if (applyElevation)
             {
-                EditCells(hexGrid.GetCell(hit.point));
+                _floodedCells.Clear();
+                _floodedCells.Add(center);
+                EditFloodElevation(center, originalElevation);
             }
+                
+            if (applyColor)
+            {
+                _floodedCells.Clear();
+                _floodedCells.Add(center);
+                EditFloodColor(center, originalColor);
+            }
+        }
+        else
+        {
+            EditCells(hexGrid.GetCell(hit.point));
         }
     }
 
@@ -82,11 +89,14 @@ public class HexMapEditor : MonoBehaviour {
     {
         int centerX = center.coordinates.X;
         int centerZ = center.coordinates.Z;
-
+        
+        EditCell(hexGrid.GetCell(new HexCoordinates(centerX, centerZ)));
+        
         for (int r = 0, z = centerZ - brushSize; z <= centerZ; z++, r++)
         {
             for (int x = centerX - r; x <= centerX + brushSize; x++)
             {
+                if(x == centerX && z == centerZ) continue;
                 EditCell(hexGrid.GetCell(new HexCoordinates(x, z)));
             }
         }
@@ -94,6 +104,7 @@ public class HexMapEditor : MonoBehaviour {
         {
             for (int x = centerX - brushSize; x <= centerX + r; x++)
             {
+                if(x == centerX && z == centerZ) continue;
                 EditCell(hexGrid.GetCell(new HexCoordinates(x, z)));
             }
         }
@@ -141,28 +152,28 @@ public class HexMapEditor : MonoBehaviour {
             cell.Elevation = activeElevation;
         }
 
-        if (cell.Type != activeType)
-        {
-            if(activeType == HexCell.HexCellType.nexus)
-            {
-                hexGrid.AddNexus(cell);
-            }
-            if (cell.Type == HexCell.HexCellType.nexus)
-            {
-                hexGrid.DeleteNexus(cell);
-            }
-            
-            if (activeType == HexCell.HexCellType.spawner)
-            {
-                hexGrid.AddSpawner(cell);
-            }   
-            if (cell.Type == HexCell.HexCellType.spawner)
-            {
-                hexGrid.DeleteSpawner(cell);
-            }
-        }
-        cell.Type = activeType;
+        if (cell.Type == activeType) return;
         
+        if (cell.Type == HexCell.HexCellType.nexus)
+        {
+            hexGrid.DeleteNexus(cell);
+        }
+        if (cell.Type == HexCell.HexCellType.spawner)
+        {
+            hexGrid.DeleteSpawner(cell);
+        }
+        
+        if(activeType == HexCell.HexCellType.nexus)
+        {
+            hexGrid.AddNexus(cell);
+        }
+        
+        if (activeType == HexCell.HexCellType.spawner)
+        {
+            hexGrid.AddSpawner(cell);
+        }   
+        
+        cell.Type = activeType;
     }
 
     public void SetTerrainTypeIndex(int index)
@@ -207,31 +218,31 @@ public class HexMapEditor : MonoBehaviour {
 
     public void SetMapName(string name)
     {
-        mapName = name;
+        MapName = name;
     }
 
     public void Save()
     {
-        if (mapName == null || mapName == "")
+        if (string.IsNullOrEmpty(MapName))
         {
-            mapName = "unnamed";
+            MapName = "unnamed";
         }
-        string path = Path.Combine(Application.persistentDataPath, mapName + ".map");
+        string path = Path.Combine(Application.persistentDataPath, MapName + ".map");
         using (BinaryWriter writer = new BinaryWriter(File.Open(path, FileMode.Create)))
         {
             writer.Write(1);
-            hexGrid.Save(writer);
+            hexGrid.Save(writer, MapName);
         }
-        Debug.Log("Saved " + mapName + " under " + path);
+        Debug.Log("Saved " + MapName + " under " + path);
     }
 
     public void Load()
     {
-        if (mapName == null || mapName == "")
+        if (string.IsNullOrEmpty(MapName))
         {
-            mapName = "unnamed";
+            MapName = "unnamed";
         }
-        string path = Path.Combine(Application.persistentDataPath, mapName + ".map");
+        string path = Path.Combine(Application.persistentDataPath, MapName + ".map");
         using (BinaryReader reader = new BinaryReader(File.OpenRead(path)))
         {
             int header = reader.ReadInt32();
@@ -245,6 +256,11 @@ public class HexMapEditor : MonoBehaviour {
                 Debug.LogWarning("Unknown map format " + header);
             }
         }
-        Debug.Log("Loaded " + mapName + " from " + path);
+        Debug.Log("Loaded " + MapName + " from " + path);
+    }
+
+    public void NextWave()
+    {
+        GameController.Instance.NextStage();
     }
 }

@@ -8,9 +8,6 @@ public class EnemyDescriptor : ScriptableObject
     [Min(.1f)]
     public float sqWalkRadius;
 
-    private void OnValidate()
-    {
-        if (speed < 0) speed = 0f;
-        if (sqWalkRadius < .1f) sqWalkRadius = .1f;
-    }
+    [Min(1f)]
+    public float health;
 }

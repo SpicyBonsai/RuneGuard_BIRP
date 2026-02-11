@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 275ed6b12b09eb34099a4df934056df7, type: 3}
+  m_Name: TowerBuilderEditorConfiguration
+  m_EditorClassIdentifier: 
+  descriptors:
+  - {fileID: 11400000, guid: eb973308db936094299f498f30d91046, type: 2}
+  towerButtonPrefab: {fileID: 8216552683248805626, guid: d7bef10b1ec9a964c8d0d67061641cbc, type: 3}

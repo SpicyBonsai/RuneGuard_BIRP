@@ -7,5 +7,4 @@ using UnityEngine;
 public class SpawnerConfiguration : ScriptableObject
 {
     public List<EnemyWave> enemyWaves;
-    public float inBetweenWavesDelay = 10f;
 }

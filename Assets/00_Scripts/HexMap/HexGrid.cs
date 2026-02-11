@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
+using UnityEditor;
 
 public class HexGrid : MonoBehaviour
 {
@@ -8,11 +9,7 @@ public class HexGrid : MonoBehaviour
     private int _chunkCountX, _chunkCountZ;
     public Color[] colors;
 
-    public HexCell cellPrefab;
-    public Text cellLabelPrefab;
-    public HexGridChunk chunkPrefab;
-    public GameObject nexusPrefab;
-    public GameObject spawnerPrefab;
+    public HexGridConfiguration configuration;
 
     private HexCell[] _cells;
     
@@ -26,6 +23,8 @@ public class HexGrid : MonoBehaviour
     {
         HexMetrics.colors = colors;
         CreateMap(cellCountX, cellCountZ);
+        
+        GameController.Instance.SetGrid(this);
     }
 
     private void Start()
@@ -73,7 +72,7 @@ public class HexGrid : MonoBehaviour
         {
             for (int x = 0; x < _chunkCountX; x++)
             {
-                HexGridChunk chunk = _chunks[i++] = Instantiate(chunkPrefab);
+                HexGridChunk chunk = _chunks[i++] = Instantiate(configuration.chunkPrefab);
                 chunk.transform.SetParent(transform);
             }
         }
@@ -99,7 +98,7 @@ public class HexGrid : MonoBehaviour
         position.y = 0f;
         position.z = z * (HexMetrics.outerRadius * 1.5f);
 
-        HexCell cell = _cells[i] = Instantiate<HexCell>(cellPrefab);
+        HexCell cell = _cells[i] = Instantiate<HexCell>(configuration.cellPrefab);
         cell.transform.localPosition = position;
         cell.coordinates = HexCoordinates.FromOffsetCoordinates(x, z);
 
@@ -127,7 +126,7 @@ public class HexGrid : MonoBehaviour
             }
         }
 
-        Text label = Instantiate<Text>(cellLabelPrefab);
+        Text label = Instantiate<Text>(configuration.cellLabelPrefab);
         label.rectTransform.anchoredPosition =
             new Vector2(position.x, position.z);
         label.text = cell.coordinates.ToStringOnSeparateLines();
@@ -178,7 +177,7 @@ public class HexGrid : MonoBehaviour
         }
     }
 
-    public void Save(BinaryWriter writer)
+    public void Save(BinaryWriter writer, string fileName = "unnamed")
     {
         writer.Write(cellCountX);
         writer.Write(cellCountZ);
@@ -186,6 +185,8 @@ public class HexGrid : MonoBehaviour
         {
             _cells[i].Save(writer);
         }
+
+        SaveOnDescriptor(fileName);
     }
 
     public void Load(BinaryReader reader, int header)
@@ -207,6 +208,8 @@ public class HexGrid : MonoBehaviour
         for (int i = 0; i < _cells.Length; i++)
         {
             _cells[i].Load(reader);
+            if(_cells[i].Type == HexCell.HexCellType.nexus) AddNexus(_cells[i]);
+            if(_cells[i].Type == HexCell.HexCellType.spawner) AddSpawner(_cells[i]);
         }
         for (int i = 0; i < _chunks.Length; i++)
         {
@@ -214,35 +217,63 @@ public class HexGrid : MonoBehaviour
         }
     }
 
+    public void SaveOnDescriptor(string fileName)
+    {
+        HexMapDescriptor mapDescriptor = new();
+        mapDescriptor.cellCountX = cellCountX;
+        mapDescriptor.cellCountZ = cellCountZ;
+        mapDescriptor.SetCells(_cells);
+        
+        AssetDatabase.CreateAsset (mapDescriptor, "Assets/TestMaps/"+ fileName.Replace(" ", "")+".asset");
+        AssetDatabase.SaveAssets ();
+        EditorUtility.FocusProjectWindow ();
+        Selection.activeObject = mapDescriptor;
+    }
+
+    public void LoadOnDescriptor(HexMapDescriptor mapDescriptor)
+    {
+        int x = mapDescriptor.cellCountX;
+        int z = mapDescriptor.cellCountZ;
+        
+        if (!CreateMap(x, z))
+        {
+            return;
+        }
+        
+        for (int i = 0; i < _cells.Length; i++)
+        {
+            _cells[i].TerrainTypeIndex = mapDescriptor.cells[i].terrainTypeIndex;
+            _cells[i].Elevation = mapDescriptor.cells[i].elevation;
+            _cells[i].Type = mapDescriptor.cells[i].type;
+            
+            if(_cells[i].Type == HexCell.HexCellType.nexus) AddNexus(_cells[i]);
+            if(_cells[i].Type == HexCell.HexCellType.spawner) AddSpawner(_cells[i]);
+        }
+        for (int i = 0; i < _chunks.Length; i++)
+        {
+            _chunks[i].Refresh();
+        }
+    }
+    
     public void AddSpawner(HexCell h)
     {
-        Instantiate(spawnerPrefab, h.transform.position, Quaternion.identity, h.gameObject.transform);
+        if(h.HasBuilding) return;
+        h.AddBuilding(configuration.spawnerPrefab);
     }
 
     public void DeleteSpawner(HexCell h)
     {
-        for (int i = 0; i < h.transform.childCount; i++)
-        {
-            if (h.transform.GetChild(i).name == "Spawner")
-            {
-                Destroy(h.transform.GetChild(i).gameObject);
-            }
-        }
+        h.DeleteBuilding();
     }
     
     public void AddNexus(HexCell h)
     {
-        Instantiate(nexusPrefab, h.transform.position, Quaternion.identity, h.gameObject.transform);
+        if(h.HasBuilding) return;
+        h.AddBuilding(configuration.nexusPrefab);
     }
     
     public void DeleteNexus(HexCell h)
     {
-        for (int i = 0; i < h.transform.childCount; i++)
-        {
-            if (h.transform.GetChild(i).name == "Nexus")
-            {
-                Destroy(h.transform.GetChild(i).gameObject);
-            }
-        }
+        h.DeleteBuilding();
     }
 }

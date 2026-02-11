@@ -4,27 +4,27 @@ using UnityEngine;
 public class Spawner : MonoBehaviour
 {
     public SpawnerConfiguration configuration;
-
-    private float _waveTimer;
-
-    private int _waveIndex = 0;
+    
+    private int _waveIndex = -1;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        _waveTimer = Time.time;
+        GameController.Instance.AddSpawner(this);
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnDestroy()
     {
-        if (_waveTimer + configuration.inBetweenWavesDelay > Time.time) return;
-        if(_waveIndex >= configuration.enemyWaves.Count) return;
-        
-        StartCoroutine(SpawnWave(configuration.enemyWaves[_waveIndex]));
-        _waveIndex++;
-        _waveTimer = Time.time;
+        GameController.Instance.RemoveSpawner(this);
     }
 
+    public void SpawnNextWave()
+    {
+        if(_waveIndex + 1 >= configuration.enemyWaves.Count) return;
+        
+        _waveIndex++;
+        StartCoroutine(SpawnWave(configuration.enemyWaves[_waveIndex]));
+    }
+    
     IEnumerator SpawnWave(EnemyWave enemyWave)
     {
         foreach (var enemy in enemyWave.enemies)
