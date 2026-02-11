@@ -35,5 +35,6 @@ public class TowerDescriptor : ScriptableObject
             tower = prefab.AddComponent<BaseTower>();
         }
         tower.descriptor = this;
+        tower.area.radius = range;
     }
 }

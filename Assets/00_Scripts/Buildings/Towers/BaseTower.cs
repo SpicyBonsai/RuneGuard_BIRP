@@ -76,10 +76,4 @@ public class BaseTower : MonoBehaviour
         if(!_enemies.Contains(enemy)) return;
         _enemies.Remove(enemy);
     }
-
-    private void OnValidate()
-    {
-        if(area == null) area = GetComponent<SphereCollider>();
-        if(area != null) area.radius = descriptor.range;
-    }
 }

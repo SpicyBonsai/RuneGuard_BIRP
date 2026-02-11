@@ -15,7 +15,7 @@ public class TowerBuilderEditor : MonoBehaviour
         RefreshTowerTabs();
     }
 
-    void FixedUpdate () 
+    void Update () 
     {
         if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject()) 
         {

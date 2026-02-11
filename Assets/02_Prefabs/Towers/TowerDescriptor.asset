@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: TowerDescriptor
   m_EditorClassIdentifier: 
   name: 
-  damage: 1
+  damage: 2
   shotsPerSecond: 2
   critChance: 0
   critDamageMultiplier: 2
-  range: 2
+  range: 5
   prefab: {fileID: 631583680291054388, guid: 2fc11c1b23e89c64eae860786b5f0f1a, type: 3}
   cost: 50
