@@ -18,8 +18,9 @@ public class TowerDescriptor : ScriptableObject
     [Tooltip("Multiplier for the critical hit damage")]
     public float critDamageMultiplier = 2;
 
-    [Min(2)]
-    public float range;
+    [Min(1)] [SerializeField] [Tooltip("In hextiles")] 
+    private float _range;
+    [HideInInspector]public float range;
     [NonSerialized] public float sqRange;
 
     public GameObject prefab;
@@ -27,6 +28,7 @@ public class TowerDescriptor : ScriptableObject
     
     private void OnValidate()
     {
+        range = _range * 2 + 1;
         sqRange = range * range;
         delayBetweenShots = 1f / shotsPerSecond;
 

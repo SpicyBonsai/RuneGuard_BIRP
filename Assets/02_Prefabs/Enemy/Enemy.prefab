@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2969106857028947123}
   - component: {fileID: 5896367935940904341}
   - component: {fileID: 3777169318906472401}
-  - component: {fileID: 5963507168865238710}
+  - component: {fileID: 6276845406214777488}
   m_Layer: 6
   m_Name: Enemy
   m_TagString: Untagged
@@ -123,7 +123,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   descriptor: {fileID: 11400000, guid: 8fc83244929a6b04bb51e6de0b32c794, type: 2}
---- !u!54 &5963507168865238710
+--- !u!54 &6276845406214777488
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -145,7 +145,7 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 0
+  m_UseGravity: 1
   m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0

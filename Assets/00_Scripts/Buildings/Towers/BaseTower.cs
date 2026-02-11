@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -10,12 +11,15 @@ public class BaseTower : MonoBehaviour
     private float _timer = float.MinValue;
 
     public SphereCollider area;
+
+    public LineRenderer laser;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         _enemies.Clear();
         area = GetComponent<SphereCollider>();
+        laser.gameObject.SetActive(false);
     }
 
     private Enemy FindClosestEnemy()
@@ -44,7 +48,16 @@ public class BaseTower : MonoBehaviour
         if(enemy == null) return;
 
         DealDamage(enemy);
+        StartCoroutine(ShootLaser(descriptor.delayBetweenShots * .1f, enemy.transform.position));
         _timer = Time.time;
+    }
+
+    private IEnumerator ShootLaser(float time, Vector3 enemyPosition)
+    {
+        laser.gameObject.SetActive(true);
+        laser.SetPositions(new []{laser.gameObject.transform.position, enemyPosition});
+        yield return new WaitForSeconds(time);
+        laser.gameObject.SetActive(false);
     }
 
     protected virtual void DealDamage(Enemy enemy)
