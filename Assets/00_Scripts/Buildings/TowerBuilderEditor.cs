@@ -17,6 +17,7 @@ public class TowerBuilderEditor : MonoBehaviour
 
     void Update () 
     {
+        if (!_selectedTowerDescriptor) return;
         if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject()) 
         {
             HandleInput();
